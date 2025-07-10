@@ -132,7 +132,7 @@ contains
     type(EvolutionVars) EV
     !     Timing variables for testing purposes. Used if DebugMsgs=.true. in ModelParams
     real(sp) actual,timeprev,starttime
-    integer i_output, l_output !RL092023 temporary
+    !integer i_output, l_output !RL092023 temporary
 
     !!    clock_totstart = 0
     !!    call cpu_time(clock_totstart) ! RH timing
@@ -1156,7 +1156,7 @@ contains
     !tol1=tol1 !RL testing 050124
     if (CP%WantTransfer .and. CP%Transfer%high_precision) tol1=tol1/100
 
-    !RL: by default in the input, tautf(1) corresponds to redshift zero, while all the other values of tautf (maximum 150) are zero, i.e. transfer function is not called at those values, only at redshift zero. I could have changed that in the params.ini file, but the file doesn't know a_osc. So here I temporarily break the code and assign tautf(1) as CP%tau_osc, and use the transfer function. I'm testing here anyways - if Wayne doesn't like that we can think of another way out.
+    !RL: by default in the input, tautf(1) corresponds to redshift zero, while all the other values of tautf (maximum 150) are zero, i.e. transfer function is not called at those values, only at redshift zero. I could have changed that in the params.ini file, but the file doesn't know a_osc. So here I temporarily break the code and assign tautf(1) as CP%tau_osc, and use the transfer function. 
     !tautf(1) = CP%tau_osc
     !write(*, *) 'RL writing the k values in CalcScalarSources'
 

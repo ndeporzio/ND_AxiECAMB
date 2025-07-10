@@ -2154,9 +2154,6 @@ contains
        z_osc = 0._dl
     end if
     
-    !!write(*, *) 'CP%a_osc, z_osc', CP%a_osc, z_osc
-    !!!real(dl) omegam_0 !RL 091924 temporary
-
     !!!omegam_0 = CP%omegac + CP%omegab + CP%omegan !RL 091924
     !!!write(*, *) 'm_ovH0', CP%m_ovH0
     !!!if (CP%m_ovH0 .ge. 10._dl) then !RL 091924
@@ -2861,8 +2858,6 @@ contains
        dtaurec=min(dtaurec,taurst/40)/AccuracyBoost
        if (do_bispectrum .and. hard_bispectrum) dtaurec = dtaurec / 4
     end if
-    !RL 012424
-    !!!dtaurec = dtaurec*0.6_dl
 
     if (CP%Reion%Reionization) taurend=min(taurend,CP%ReionHist%tau_start)
 
@@ -3050,33 +3045,22 @@ if (CP%a_osc .le. 1._dl) then
     !!!!- Add the coarse refinement only if tau*>taurend
     !!!!- Always add the fine refinement around tau* if tau*>taurstart
     if (CP%tau_osc .gt. taurst) then
-       !call Ranges_Add_delta(TimeSteps, 1.5_dl*dtauosc, min(CP%tau_osc+1.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, 2.5_dl*dtauosc, min(CP%tau_osc+2.5_dl*dtauosc, CP%tau0), dtauosc)
-
+       
        !call Ranges_Add_delta(TimeSteps, 12.5_dl*dtauosc, min(CP%tau_osc+12.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, 24.5_dl*dtauosc, min(CP%tau_osc+24.5_dl*dtauosc, CP%tau0), dtauosc)
-       !!call Ranges_Add_delta(TimeSteps, 100.5_dl*dtauosc, min(CP%tau_osc+100.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, 200.5_dl*dtauosc, min(CP%tau_osc+200.5_dl*dtauosc, CP%tau0), dtauosc)
+      
        !call Ranges_Add_delta(TimeSteps, max(1000.5_dl*dtauosc, taurst), min(CP%tau_osc+1000.5_dl*dtauosc, CP%tau0), dtauosc) !make sure there's no "end smaller than start issue"
 !!!call Ranges_Add_delta(TimeSteps, 0.276765617169163391508845961652696132660000E2_dl, 0.304303865234321051502774935215711593627000E3_dl, dtauosc)
         !!call Ranges_Add_delta(TimeSteps, 0.276765617169163391508845961652696132660000E2_dl, 0.404303865234321051502774935215711593627000E3_dl, dtauosc)
          !!write(*, *) 'Rayne, tauosc add delta, dtauosc, 1000.5_dl*dtauosc, min(CP%tau_osc+1000.5_dl*dtauosc, CP%tau0)'
          !!write(*, '(36E52.42E3)') dtauosc, 1000.5_dl*dtauosc, min(CP%tau_osc+1000.5_dl*dtauosc, CP%tau0)
-       !call Ranges_Add_delta(TimeSteps, 2000.5_dl*dtauosc, min(CP%tau_osc+2000.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, 12.5_dl*dtauosc, min(CP%tau_osc+3000.5_dl*dtauosc, CP%tau0), dtauosc)
-       !!call Ranges_Add_delta(TimeSteps, 12.5_dl*dtauosc, CP%tau0, dtauosc)
        !Then make dtauosc super fine around tauosc
          dtauosc = CP%tau_osc/int(6000._dl*CP%dfac)
          !dtauosc = CP%tau_osc/int(12000._dl*CP%dfac)
-         !dtauosc = CP%tau_osc/int(6000000._dl*CP%dfac)
          !!write(*, *) 'Rayne, ultrafine, dtauosc', dtauosc
          call Ranges_Add_delta(TimeSteps, max(CP%tau_osc-6.5_dl*dtauosc, taurst), min(CP%tau_osc+6.5_dl*dtauosc, CP%tau0), dtauosc)!RL
        !call Ranges_Add_delta(TimeSteps, max(CP%tau_osc-2.5_dl*dtauosc, taurst), min(CP%tau_osc+2.5_dl*dtauosc, CP%tau0), dtauosc)
        !call Ranges_Add_delta(TimeSteps, max(CP%tau_osc- 1500.5_dl*dtauosc, taurst), min(CP%tau_osc+1500.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, max(CP%tau_osc- 1000.5_dl*dtauosc, taurst), min(CP%tau_osc+1000.5_dl*dtauosc, CP%tau0), dtauosc)
        !!write(*, *) 'max(CP%tau_osc- 1000.5_dl*dtauosc, taurst), min(CP%tau_osc+1.5_dl*dtauosc, CP%tau0)', max(CP%tau_osc- 1000.5_dl*dtauosc, taurst), min(CP%tau_osc+1.5_dl*dtauosc, CP%tau0)
-       !!call Ranges_Add_delta(TimeSteps, max(CP%tau_osc- 1000.5_dl*dtauosc, taurst), min(CP%tau_osc+1.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, max(CP%tau_osc- 2000.5_dl*dtauosc, taurst), min(CP%tau_osc+2000.5_dl*dtauosc, CP%tau0), dtauosc)
        
        !call Ranges_Add_delta(TimeSteps, 24.5_dl*dtauosc, min(CP%tau_osc+4.5_dl*dtauosc, CP%tau0), dtauosc)
        end if
@@ -3084,7 +3068,6 @@ if (CP%a_osc .le. 1._dl) then
        dtauosc = dtauosc*1000._dl
        call Ranges_Add_delta(TimeSteps, max(6.5_dl*dtauosc, taurend), min(CP%tau_osc+6.5_dl*dtauosc, CP%tau0), dtauosc)
        !call Ranges_Add_delta(TimeSteps, max(12.5_dl*dtauosc, taurend), min(CP%tau_osc+12.5_dl*dtauosc, CP%tau0), dtauosc)
-       !call Ranges_Add_delta(TimeSteps, max(1000.5_dl*dtauosc, taurend), min(CP%tau_osc+1000.5_dl*dtauosc, CP%tau0), dtauosc)
     !write(*, *) 'Rayne, coarse, dtau0, dtauosc, dtaurec', dtau0, dtauosc, dtaurec
     end if
 end if

@@ -1882,7 +1882,7 @@ contains
     real(dl) dpax_kg, dgpaxa2_kg, dgpnumass_temp, dgrhonumass_temp !RL testing gr_minus2x, gr_minus2x_delogged, gr_minus, gr_minus_delogged, gr_plus, gr_plus_delogged, gr_plus2x, gr_plus2x_delogged, dlnaepsilon, dgrdlna, dgrdlna_minus, dgrdlna_plus, gP, gP_minus, gP_plus, dgPdlna, dgPlnadgrlna
     real(dl) delta_rho_sync_quasitest, delta_p_sync_quasitest, delta_rho_rest_quasitest, delta_p_rest_quasitest
     real(dl) kamnorm, csquared_ax!RL testing
-    real(dl) opacity_output, dopacity_output, opacity_use, dopacity_use, cs2_output !RL added to call thermo to compute opacity (temporarily)
+    real(dl) opacity_output, dopacity_output, opacity_use, dopacity_use, cs2_output !RL added to call thermo to compute opacity test
     real(dl) H0_in_Mpc_inv !RL testing
     real(dl) dtauda
     external dtauda
@@ -1958,7 +1958,7 @@ contains
        clxax_kg = drhoax_kg/grhoax_kg 
        u_ax_kg = w_ax_p1*k*dv1*EV%renorm_c/(CP%H0_in_Mpc_inv*v2_bg)
        v_ax_test = k*dv1*EV%renorm_c/(CP%H0_in_Mpc_inv*v2_bg)
-       !dpax_kg = (v2_bg*dv2/a2 - (CP%m_ovH0**2.0d0)*v1_bg*dv1)*2.0d0 !RL TEMPORARILY ADDED DPAX_KG TO OBTAIN HLDDOT FOR THE QUASISTATIC TEST
+       !dpax_kg = (v2_bg*dv2/a2 - (CP%m_ovH0**2.0d0)*v1_bg*dv1)*2.0d0 !RL for quasistatic test
        !write(*, *) 'Rayne, dpax_kg, drhoax_kg, their ratio', dpax_kg, drhoax_kg, dpax_kg/drhoax_kg
        !dgpaxa2_kg = grhom*dpax_kg*a2/(CP%H0**2.0d0/1.0d4) !RL switching to CAMB normalization
        !RL testing
@@ -2264,17 +2264,12 @@ contains
   if (kamnorm .lt. 1.e-13_dl) then
     !!write(*, *) 'Rayne, machine precision', kamnorm
     !RL dealing with machine precision issue - Taylor expand to leading order
-   csquared_ax = kamnorm/4.0_dl + 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm))!orbifolia    
+   csquared_ax = kamnorm/4.0_dl + 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm))   
   else  
-     csquared_ax = (sqrt(1.0_dl + kamnorm) - 1.0_dl)**2.0_dl/(kamnorm) + 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm))    !orbifolia  
+     csquared_ax = (sqrt(1.0_dl + kamnorm) - 1.0_dl)**2.0_dl/(kamnorm) + 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm))     
      !csquared_ax = (sqrt(1.0_dl + kamnorm) - 1.0_dl)**2.0_dl/(kamnorm) + 1.1_dl*(adotoa**2.0_dl)/((k2/kamnorm))
    end if
-    !write(*, *) 'Rayne, at the end of output, w_ax_p1', w_ax_p1
-    !write(041923, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, adotoa, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), v1_bg, v2_bg, dorp*(CP%H0**2.0d0/1.0d4)/grhom, cad2, dv1, dv2, drhoax_kg, clxc, clxax_kg, csquared_ax, csquared_ax - 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm)), (kamnorm/4.0_dl)/(1.0d0+kamnorm/4.0_dl)
-    !write(050223, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, adotoa, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), v1_bg, v2_bg, dorp*(CP%H0**2.0d0/1.0d4)/grhom, cad2, dv1, dv2, drhoax_kg, clxc, clxax_kg, csquared_ax, csquared_ax - 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm)), (kamnorm/4.0_dl)/(1.0d0+kamnorm/4.0_dl)
-
-    !!write(080923, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, adotoa/CP%H0_in_Mpc_inv, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), v1_bg, v2_bg, dorp*(CP%H0**2.0d0/1.0d4)/grhom, 2.0_dl*k*z, dv1, dv2, drhoax_kg, clxc, clxax_kg, sources(1), sources(2), sources(3)
-    !!write(081423, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, 2.0_dl*k*z, etak, clxax_kg, sources(1), sources(2), sources(3), ISW, pig, pigdot, clxg, ypol(2), ypolprime(2), ypol(3), ypolprime(3), opacity_use, dopacity_use, sigma, EV%Kf(1),  EV%Kf(2), vb, vbdot, octg, octgprime, qg, qgdot, dgpi, vis(j), dvis(j), ddvis(j), diff_rhopi, dgrho, gpres, grho, expmmu(j) !(4.D0/3.D0*k*EV%Kf(1)*sigma)*expmmu(j), (-2.D0/3.D0*sigma-2.D0/3.D0*etak/adotoa)*k*expmmu(j), -diff_rhopi*expmmu(j)/k**2-1.D0/adotoa*dgrho/3.D0, (3.D0*(gpres-gpres_ax + gpresaxef_test)+5.D0*grho)*sigma/k/3.D0, (-2.D0/k*adotoa/EV%Kf(1)*etak)*expmmu(j) 
+   !!write(081423, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, 2.0_dl*k*z, etak, clxax_kg, sources(1), sources(2), sources(3), ISW, pig, pigdot, clxg, ypol(2), ypolprime(2), ypol(3), ypolprime(3), opacity_use, dopacity_use, sigma, EV%Kf(1),  EV%Kf(2), vb, vbdot, octg, octgprime, qg, qgdot, dgpi, vis(j), dvis(j), ddvis(j), diff_rhopi, dgrho, gpres, grho, expmmu(j) !(4.D0/3.D0*k*EV%Kf(1)*sigma)*expmmu(j), (-2.D0/3.D0*sigma-2.D0/3.D0*etak/adotoa)*k*expmmu(j), -diff_rhopi*expmmu(j)/k**2-1.D0/adotoa*dgrho/3.D0, (3.D0*(gpres-gpres_ax + gpresaxef_test)+5.D0*grho)*sigma/k/3.D0, (-2.D0/k*adotoa/EV%Kf(1)*etak)*expmmu(j) 
     !write(*,'(36e52.42,\)') CP%H0_in_Mpc_inv
     !write(043023, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, adotoa, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), v1_bg, v2_bg, dorp*(CP%H0**2.0d0/1.0d4)/grhom, dv1, dv2, drhoax_kg, clxc, clxax_kg
     !write(*, *) 'k, clxc, clxax_kg in output', k, clxc, clxax_kg !RL
@@ -3415,7 +3410,7 @@ contains
        !clxax_kg_dot = -w_ax_p1*(thetaax_kg+k*z) - 3.0_dl*(csquared_ax-w_ax)*adotoa*clxax_kg - 9.0_dl*w_ax_p1*(csquared_ax-cad2)*(adotoa**2.0_dl)*thetaax_kg/k2
        !thetaax_kg_dot= -(1.0_dl-3.0_dl*csquared_ax)*adotoa*thetaax_kg + csquared_ax*k2*clxax_kg/w_ax_p1
        !---------------------------
-       !Rl temporarily testing to put the correction to w_ax and cad2 out of the pert EoM
+       !Rl testing to put the correction to w_ax and cad2 out of the pert EoM
        !w_ax = 3.0_dl*(adotoa**2.0_dl)/(2.0_dl*(k2/kamnorm))
        !w_ax_p1 = 1.0_dl + w_ax
        !cad2 = w_ax*((w_ax + 7.0_dl/3.0_dl)/w_ax_p1)
@@ -3690,9 +3685,6 @@ contains
     !dv1_quasitest = -z*v2_bg*(CP%H0_in_Mpc_inv)/k
     !clxax_quasitest = ((CP%m_ovH0**2.0d0)*v1_bg*dv1_quasitest)/((v2_bg)**2.0d0/a2+(CP%m_ovH0*v1_bg)**2.0d0)
     !write(03021923, '(36e52.42,\)') k, a, CP%a_osc, tau, CP%tau_osc, adotoa, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), dorp, w_ax_p1, cad2, clxax_kg, thetaax_kg, clxax_quasitest, dv1, dv1_quasitest, z, v2_bg, dgrho, clxg
-    !write(032223, '(36e52.42,\)') k, a, CP%a_osc, tau, CP%tau_osc, clxax_kg
-    !write(042323, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc, adotoa, CP%m_ovH0*CP%H0_in_Mpc_inv/(adotoa/a), v1_bg, v2_bg, dorp*(CP%H0**2.0d0/1.0d4)/grhom, dv1, dv2, drhoax_kg, clxc, clxax_kg, (sqrt(1.0_dl + kamnorm) - 1.0_dl)**2.0_dl/(kamnorm) + 5.0_dl*(adotoa**2.0_dl)/(4.0_dl*(k2/kamnorm)), (sqrt(1.0_dl + kamnorm) - 1.0_dl)**2.0_dl/(kamnorm), (kamnorm/4.0_dl)/(1.0d0+kamnorm/4.0_dl)
-    !!write(081423, '(36e52.42,\)') CP%m_ovH0, k, k/(CP%m_ovH0*CP%H0_in_Mpc_inv), a, CP%a_osc, tau, CP%tau_osc,2.0_dl*k*z, clxax_kg, sources(1), sources(2), sources(3)
 
     !!if (tau .eq. CP%tau_osc .and. .not. EV%oscillation_started) then
     !!   write(*, *) 'Rayne, in derivs on the KG side, tau = tauosc, ayprime(2), ayprime(3),adotoa/H0, adotoa*sigma/k', ayprime(2), ayprime(3), adotoa/CP%H0_in_Mpc_inv, adotoa*sigma/k
