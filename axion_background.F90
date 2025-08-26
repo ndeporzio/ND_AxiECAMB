@@ -604,8 +604,6 @@ contains
     else !Oscillation starts approximately in radiation-domination
        v1_initguess(2) = dsqrt(omegah2_ax)/(((9.0d0*Params%omegah2_rad/hsq)**0.375d0)*(maxion_twiddle**0.25d0))
     end if
-
-    !write(*, *) 'Rayne, v1_initguess', v1_initguess
     !RL assigning the initial guesses for bisection
     !Make the range that spans 2x or /2 of the initial guess
     v1_initguess(1) = v1_initguess(2)/2.0d0
@@ -732,7 +730,6 @@ contains
                 ! condition (and thus when the code will switch from pure scalar evolution to coherent oscillation)
                 diagnostic(i)=dfac*littlehfunc(i)/(a_arr(i)*hnot) !RL fixed by adding hnot
 
-                !write(*, *) 'Rayne, diagnostic(i), diagnostic(i-1), a_arr(i), a_arr(i-1), littlehfunc(i), a_arr(i)*hnot', diagnostic(i), diagnostic(i-1), a_arr(i), a_arr(i-1), littlehfunc(i), a_arr(i)*hnot
                 ! find first guess for aosc 
                 if (i .gt. 1) then
                    if (aosc_guess(j) .eq. 15.0d0) then
@@ -1011,10 +1008,6 @@ contains
        deallocate(cmat, kvec, kfinal, svec, avec) !RL 112223
 
 
-       !write(*, *) 'Rayne, final_fout_check, fax, ratio', final_fout_check, fax, final_fout_check/fax
-       
-       !print*,dexp(final_fout_check)*omegah2_regm/(1.0d0-dexp(final_fout_check)),fax*omegah2_regm/(1.0d0-(fax))
-
 
        !Compute m/3H as a function of scale factor, as well as the scalar field equation of state
        !and appropriately normalized energy density
@@ -1094,13 +1087,12 @@ contains
        !also the effective fluid version of the pressure
        !!Prefp = (maxion_twiddle**2.0d0)*(tvarphi_cp**2.0d0/2.0d0 + tvarphi_sp**2.0d0/2.0d0 - tvarphi_c*tvarphi_sp + tvarphi_s*tvarphi_cp)
        !rhorefp = (v2_ref)**2.0_dl/(Params%a_osc**2.0_dl)+(maxion_twiddle*v1_ref)**2.0_dl
-       !write(*, *) 'Rayne, rhorefp in the output table', rhorefp
        !Rescale for CAMB using hsq and store to derived type (CP)
        Params%rhorefp_ovh2=rhorefp/hsq
        Params%Prefp = Prefp !RL: I don't want to rescale with hsq anymore...
        !Temporarily using the background energy density here with finite difference spline boundary conditions
        !Switch to w=0 at aosc
-       !"MY RECOMMENDATION FOR THE FINAL APPROACH FOR YOUR CODE IS: ANALYTIC BOUNDARY DERIVATIVES FOR THE SPLINED VARIABLE (PROBABLY HERE IT IS DLOG(RHOAX)/DLNA, TABLE EXTENDS TO A SUFFICIENT “A" THAT NO PROBLEMS OCCUR IN SPLINING AT A=AOSC, NEVER USE THE LOOKUP TABLE TO DEFINE DENSITY AFTER AOSC."
+       !Final approach guideline: analytical boundary derivatives for the splined variable (e.g. dlog(rhoax)/dlna), table extends to sufficient "a" that no problems occur in splining at a=aosc, never use the lookup table to define density after aosc.
 
        !RL: since we don't use the table beyond a_osc, and we need spline tables to be an extension of KG, no rescaling used here
        !do i=1,ntable,1
@@ -1116,30 +1108,9 @@ contains
 
        d1 = -6.0_dl*(phidotnorm_table(1)/(10._dl**(loga_table(1))))**2._dl/rhoaxh2_ov_rhom(1)
        d2 = -6.0_dl*(phidotnorm_table(ntable)/(10._dl**(loga_table(ntable))))**2._dl/rhoaxh2_ov_rhom(ntable)
-       !write(*, *) 'Rayne, analytical boundary condition you evaluated', d1, d2
-
-       !write(*, *) 'Rayne, the coarse differentiation boundary condition', (rhoaxh2ovrhom_logtable(2)-rhoaxh2ovrhom_logtable(1))/(loga_table(2)-loga_table(1)), (rhoaxh2ovrhom_logtable(ntable)-rhoaxh2ovrhom_logtable(ntable-1))/(loga_table(ntable)-loga_table(ntable-1))
-       !write(*, *) 'Rayne, boundary condition by the one-sided 3-pt finite stencil', (3._dl*rhoaxh2ovrhom_logtable(2)-3._dl*rhoaxh2ovrhom_logtable(3)/2._dl + rhoaxh2ovrhom_logtable(4)/3._dl - 11._dl*rhoaxh2ovrhom_logtable(1)/6._dl)/(loga_table(2)-loga_table(1)), &
-       !     &(3._dl*rhoaxh2ovrhom_logtable(ntable-1)-3._dl*rhoaxh2ovrhom_logtable(ntable-2)/2._dl + rhoaxh2ovrhom_logtable(ntable-3)/3._dl - 11._dl*rhoaxh2ovrhom_logtable(ntable)/6._dl)/(loga_table(ntable-1)-loga_table(ntable))
-
-       !d1=(rhoaxh2ovrhom_logtable(2)-rhoaxh2ovrhom_logtable(1))/(loga_table(2)-loga_table(1))
-       !d2=(rhoaxh2ovrhom_logtable(ntable)-rhoaxh2ovrhom_logtable(ntable-1))/(loga_table(ntable)-loga_table(ntable-1))      
-
-       !call spline_out(loga_table(1:ntable),rhoaxh2ovrhom_logtable(1:ntable),rhoaxh2ovrhom_logtable_buff(1:ntable),ntable,Params%a_osc,rhorefp)
-       !Params%a_osc=dlog(Params%a_osc)
-       !rhoaxh2ovrhom_logtable=dlog(rhoaxh2_ov_rhom)
-       !d1=(rhoaxh2ovrhom_logtable(2)-rhoaxh2ovrhom_logtable(1))/(loga_table(2)-loga_table(1))
-       !d2=(rhoaxh2ovrhom_logtable(ntable)-rhoaxh2ovrhom_logtable(ntable-1))/(loga_table(ntable)-loga_table(ntable-1))      
+    
        call spline(loga_table,rhoaxh2ovrhom_logtable,ntable,d1,d2,rhoaxh2ovrhom_logtable_buff)
-       !call spline_out(loga_table(1:ntable),rhoaxh2ovrhom_logtable(1:ntable),rhoaxh2ovrhom_logtable_buff(1:ntable),ntable,Params%a_osc,rhorefp)
-
-
-       !Params%a_osc=dexp(Params%a_osc)
-       !rhorefp=dexp(rhorefp)
        
-       
-       !rhoaxh2ovrhom_logtable=dlog(rhoaxh2_ov_rhom)
-       !write(*, *) 'Rayne, test the last entry of rhoaxh2_ov_rhom after this post-asoc rescaling', rhoaxh2_ov_rhom(ntable)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!calculate axion adiabatic sound speed Pdot/rhodot, asymptoting to constant (physical) value at low a, when small machine numbers start to behave badly
@@ -1195,23 +1166,9 @@ contains
 
        !output omega_r
        Params%omegar=Params%omegah2_rad/hsq
-
-
-       !write(*, *) 'Rayne, the last entry of rhoaxh2_ov_rhom', rhoaxh2_ov_rhom(ntable)
-
-       !write(*, *) 'Rayne, constructing grhoax from the last entry of a_arr, v_vec(1), v_vec(2)', (phidotnorm_table(ntable)/a_arr(ntable))**2.0_dl+ (maxion_twiddle * phinorm_table(ntable))**2.0_dl
-       !write(*, *) 'Rayne, the last entry of a_arr, the last entry of loga_table, their fractional difference', a_arr(ntable), 10.0_dl**(loga_table(ntable)), a_arr(ntable)/(10.0_dl**(loga_table(ntable))) - 1.0_dl
-
-!!!!Timing Stuff
-       !clock_stop = 0.0
-       !call cpu_time(clock_stop)
-       !print*,'axion bg subroutine timing:', clock_stop - clock_start
-       !write(*, *) 'Rayne, what is the last entry of the Params%logatable in the background?', loga_table(ntable)
-       !write(*, *) 'Rayne, Params%H0_in_Mpc_inv', Params%H0_in_Mpc_inv
        
 
        deallocate(a_arr, v_vec, littlehfunc, littlehfunc_buff, rhoaxh2_ov_rhom)
-       !!write(*, *) 'R1, H0_in_Mpc_inv/H0_eV', Params%H0_in_Mpc_inv/Params%H0_eV
      end subroutine w_evolve
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1306,7 +1263,6 @@ contains
        do iter_EFA = 1, maxiter, 1
           !H/m = (H/H0)(H0/m) = (lh/(a*hnot))/m_twiddle  
           Hovm_ETA = lhETA/(a*hnot*maxion_twiddle)
-          !write(*, *) 'Rayne, what is 1/Hovm in the switch module???', 1/Hovm
           !Compute the eos of axions since it's a bit long
           !w_ax_p1 = (2.0d0*(v(2)**2.0d0)/a2)/((v(2)**2.0d0)/a2 + (maxion_twiddle*v(1))**2.0d0)
           !With the eos correction from 0
@@ -1314,7 +1270,6 @@ contains
 
           w_ax = (Hovm_ETA**2.0d0)*Params%wEFA_c !RL 110923
 
-          !write(*, *) 'Rayne, v1, v2, max, w_ax_p1 in background', v(1), v(2), maxion_twiddle, w_ax_p1
           !Sum up all the components together first - multiply by HH0^2/m later. The reason why I don't take out the -3.0 is I don't want to compute fractions for EoS for example 1/3. Note this expression carries an h^2, so we don't need to multiply by another hnot^2 afterwards
           dHsqdmt_term = omegah2_regm*(-3.0d0)/a+& !matter (a^-3*a^2, explained below)
                &omegah2_rad*(-4.0d0)/(a2)+& !radiation (a^-4*a^2, again explained below)
@@ -1325,11 +1280,8 @@ contains
 
           !Now multiply by HH0^2/m. This multiplication carries all the dimension. But better yet we also have a m/H^3 term, so this overall gives H0^2/H^2 = (H0/H)^2. Since lh = ah, H0/H = hnot/h = a(hnot/lh), (H0/H)^2 = a^2 (hnot/lh)^2. This cancels out the a^2 term we evaluated before so we simply remove them from above. Also as explained above the h^2 term is already included so we just divide by lh^2
           dHsqdmt_term = dHsqdmt_term/(lhETA**2.0d0) !Now this term is dimensionless
-          !write(040623, '(36e52.42,\)') a, littlehauxi, v(1), v(2), dHsqdmt_term
           !Now we can compute the coefficient that links the 2nd order derivatives wrt (mt) to the 1st derivatives.
           A_coeff = (-Hovm_ETA/2.0d0)*(3.0d0 - dHsqdmt_term)
-          !write(*, *) 'Rayne, auxiIC, a, A_coeff'
-          !write(*, '(36e52.42,\)') a, A_coeff
           !Also a denominator term in the IC terms appear more than once
           A_denom = A_coeff**2.0d0 + 3.0d0*A_coeff*Hovm_ins + 4.0d0
           !Now construct the 4 IC sin & cos terms (with normalization sqrt(4\pi G/3)h)
@@ -1337,8 +1289,6 @@ contains
           tvarphi_cp = -3.0d0*Hovm_ins*(2.0d0*v(1) + (A_coeff + 3.0d0*Hovm_ins)*v(2)/(a*maxion_twiddle))/A_denom
           tvarphi_s = v(2)/(a*maxion_twiddle) - tvarphi_cp
           tvarphi_sp = 3.0d0*Hovm_ins*(A_coeff*v(1) - 2.0d0*v(2)/(a*maxion_twiddle))/A_denom
-          !write(*, *) 'Rayne, dfac = 10, m/H, v1_ref, tvarphi_c,tvarphi_cp,tvarphi_s,tvarphi_sp'
-          !write(040923, '(36e52.42,\)') a, littlehauxi, 1/Hovm, v(1), v(2), tvarphi_c,tvarphi_cp,tvarphi_s,tvarphi_sp, ((v(2)/a)**2.0d0+(maxion_twiddle*v(1))**2.0d0), (maxion_twiddle**2.0d0)*(tvarphi_c**2.0d0 + tvarphi_s**2.0d0 + (tvarphi_cp**2.0d0 + tvarphi_sp**2.0d0)/2.0d0 - tvarphi_c*tvarphi_sp + tvarphi_s*tvarphi_cp)
           !rhorefp now is the effective fluid version
           rhorefp = (maxion_twiddle**2.0d0)*(tvarphi_c**2.0d0 + tvarphi_s**2.0d0 + &
                &(tvarphi_cp**2.0d0 + tvarphi_sp**2.0d0)/2.0d0 - tvarphi_c*tvarphi_sp + tvarphi_s*tvarphi_cp)

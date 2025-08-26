@@ -35,7 +35,7 @@ program driver
        MatterPowerFileNames(max_transfer_redshifts), outroot, version_check
   real(dl) output_factor, nmassive,omnuh2,nu_massless_degeneracy,fractional_number
   real(dl) actual_massless,neff_i
-  real clock_start, clock_stop ! RH timing RL reusing 07/18/2023	
+  !real clock_start, clock_stop ! RH timing 
 
   type (CAMBdata)  :: AxionIsoData ! Adding this for the iso stuff
   type (CAMBdata)  :: AxionAdiData ! Adding this for the iso stuff
@@ -50,7 +50,6 @@ program driver
   real(dl) hnot
   !a_equality, omega_radiation, initial scalar field value,omega_rad H^2, rho_crit, number of massless neutrinos
   integer iter_dfac, iter_dfacETA
-!!!real(dl) dfac_prev1, dfac_prev2, aosc_prev1, aosc_prev2 !RL adding to perform bisection for the recombination jump case
   real(dl) aeq,omegar,phiinit,omegah2_rad,rhocrit, nnu, rh_num_nu_massless
   !Timing variables
   real clock_totstart, clock_totstop ! RH timing
@@ -63,17 +62,7 @@ program driver
   real(dl) twobeta_tgt, beta_coeff, y_phase, movHETA_beta, movHETA_new
   real(dl) twobeta_new, twobeta_old1, twobeta_old2, hETA_beta, hETA_new
   real(dl) hosc_new, hosc_old1, hosc_old2, hETA_old1, hETA_old2, beta_tol !RL 030624
-  character(LEN=Ini_max_string_len) filenametest !RL 042824
   ! End axion stuff
-
-  character(len=500) :: testthetafilename !RL022224 temporary
-  character(len=32) :: dfac_str !RL022224 temporary
-  character(len=6) :: abun_str, abun_str1 !RL022224 temporary
-  character(len=5) :: H0_str, H0_str1 !RL 091924 temporary
-  character(len=32) :: max_str !RL022224 temporary
-  character(len=4) :: omk_str, omk_str1 !RL090324 temporary
-  character(len=1) :: useaxfrac_str, dolateradtrunc_str !RL022224 temporary
-
 
   InputFile = ''
   if (GetParamCount() /= 0)  InputFile = GetParam(1)
@@ -150,9 +139,6 @@ program driver
   call DarkEnergy_ReadParams(DefIni)
 
   P%H0     = Ini_Read_Double('hubble')
-!!!write(H0_str1,'(F5.2)') P%H0
-  !write(*, *) 'abun_str T', abun_str
-!!!write(H0_str, '(A,A,A)') H0_str1(1:2), 'd', H0_str1(4:5)
   P%H0_in_Mpc_inv = dble(P%H0)/dble(c/1.0d3) !RL
   P%H0_eV = h_P*P%H0_in_Mpc_inv/(Mpc_in_sec*2._dl*const_pi*elecV) !RL
 
@@ -517,46 +503,6 @@ program driver
      end if
   end if
 
-!!!!! RL testing 061924 - this has to be before ini close
-!!!  write(dfac_str,'(F5.1)') P%dfac
-!!!  write(omk_str1,'(F4.2)') P%omegak
-!!!  write(omk_str, '(A,A,A)') omk_str1(1:1), 'd', omk_str1(3:4)
-!!!  write(max_str,'(ES32.2E3)') P%ma
-!!!  max_str = adjustl(max_str)
-!!!  if (P%use_axfrac) then
-!!!     useaxfrac_str = 'T'
-!!!     write(*, *) 'axfracT, axfrac:', P%axfrac
-!!!     if (P%axfrac .eq. 1.e-6_dl) then
-!!!        abun_str = '1d0e-6'
-!!!     else
-!!!        write(abun_str1,'(F6.4)') P%axfrac
-  !write(*, *) 'abun_str T', abun_str
-!!!        write(abun_str, '(A,A,A)') abun_str1(1:1), 'd', abun_str1(3:6)
-!!!        write(*, *) 'abun_str:', abun_str
-!!!     end if
-!!!  else
-!!!     useaxfrac_str = 'F'
-!!!     !write(*, *) 'axfrac?', P%axfrac
-!!!     if (Ini_Read_Double('omaxh2') .eq. 1.e-6_dl) then
-!!!        abun_str = '1d0e-6'
-!!!    else
-!!!        write(abun_str1,'(F6.4)') Ini_Read_Double('omaxh2')
-!!!        write(*, *) 'abun_str1:', abun_str1
-  ! write(*, *) 'abun_str F, abun_str(3:3):', abun_str, abun_str(3:3)
-!!!        write(abun_str, '(A,A,A)') abun_str1(1:1), 'd', abun_str1(3:6)
-!!!     end if
-!!!  end if
-
-!!!  abun_str = trim(adjustl(abun_str))
-  !write(*, *) 'RL checkpoint, useaxfrac_str, teststr: ', useaxfrac_str, 'teststr'
-!!!  if (abun_str == '0d00') abun_str = '1e-6'
-!!!  if (DoLateRadTruncation) then
-!!!     dolateradtrunc_str = 'T'
-!!!  else
-!!!     dolateradtrunc_str = 'F'
-!!!  end if
-!!!  write(*, *) 'RL checkpoint, dolateradtrunc_str:', dolateradtrunc_str
-
   call Ini_Close
 
   ! DM: The place axion evolution is called
@@ -569,8 +515,7 @@ program driver
 
   !call cpu_time(clock_start) ! RH timing
   ! Run axion background evolution and then with arrays in hand for interpolation, run the regular CAMB
-  !!allocate(P%grhoax_table(ntable))
-  !!allocate(P%grhoax_table_buff(ntable))
+
   call init_massive_nu(P%omegan /=0) !RL added 07/10/23
   P%a_skip = 1._dl/(800._dl + 1._dl) !RL for skipping
   P%a_skipst = 1._dl/(1300._dl + 1._dl) !lower threshold of recombination skip
@@ -675,13 +620,11 @@ program driver
   end if
 
   do iter_dfac = 1, 500
-!!!write(*, *) 'P%a_osc, P%a_skip*(1._dl - 1.e-2_dl), P%a_skipst', P%a_osc, P%a_skip*(1._dl - 1.e-2_dl), P%a_skipst
      if (P%a_osc .lt. P%a_skip*(1._dl - 1.e-2_dl) .and. P%a_osc .ge. P%a_skipst) then !
         !RL 032024: 1e-2 is the tolerence to eliminate additional loops if we don't skip to exactly after a_skip due to numerical factors
         P%dfac = P%dfac_skip
         ntable = nint(P%dfac*100) + 1
         call w_evolve(P, badflag)
-!!!write(*, *) 'Rayne, each call, P%a_osc, P%a_skip, P%a_skip*(1._dl - 1.e-2_dl), P%dfac, P%dfac_skip', P%a_osc, P%a_skip, P%a_skip*(1._dl - 1.e-2_dl), P%dfac, P%dfac_skip
      else
         exit
      end if
@@ -692,16 +635,7 @@ program driver
           &P%a_osc, P%a_skip', P%a_osc, P%a_skip
   end if
 
-
-  !!write(*, *) CP%dfac, dfac_str
-  !!write(*, *) 'omk_str', omk_str ', '_omk', omk_str'
-  !!write(testthetafilename, '(A,A,A,A,A,A,A,A,A,A,A,A,I0,A,I0,A,A,A,I0,A,A,A)') '../Testdata/housecleaning3/AxiEF2_axf', useaxfrac_str, abun_str, '_omdah20d12_H0', H0_str, '_hyb2ktau2_Ct6tau*t12hw6_wEFAtowEF_m', max_str(1:1), 'd', max_str(3:4), 'e-', max_str(8:9), '_m-nuon_aB', int(AccuracyBoost), '_laB', int(lAccuracyBoost), '_Lratc', dolateradtrunc_str, '_dfac', int(P%dfac), 'd', dfac_str(5:5), '_zstar_rs-star_thetastar_sigma8_om0.dat' !_scalclsF_dfac
-  !!write(testthetafilename, '(A,A,A,A,A,A,A,A,A,A,A,A,I0,A,I0,A,A,A,I0,A,A,A)') '../testdata_midway/Asm_axf', useaxfrac_str, abun_str, '_omdah20d12_H0', H0_str, '_hyb2ktau2_Ct6tau*t12hw6_wEFAtowEF_m', max_str(1:1), 'd', max_str(3:4), 'e-', max_str(8:9), '_m-nuon_aB', int(AccuracyBoost), '_laB', int(lAccuracyBoost), '_Lratc', dolateradtrunc_str, '_dfac', int(P%dfac), 'd', dfac_str(5:5), '_zstar_rs-star_thetastar_sigma8_om0.dat' !
-
-  !!  call CreateTxtFile(filenametest,050924)
-  !call cpu_time(clock_stop) ! RH timing 
-  !print*, 'timing after dans routine', clock_stop - clock_start
-
+  
   if (.not. CAMB_ValidateParams(P)) stop 'Stopped due to parameter error'
 
 #ifdef RUNIDLE
@@ -710,14 +644,11 @@ program driver
 
 
   !call cpu_time(clock_start) ! RH timing
-  !write(*, *) 'RL, clock_start'
-
 
 !!!!! This is where we need to be renee, but where are the cls
 !!!! regenerate the spectra here
   if (global_error_flag==0) then 
 
-!!!write(*, *) 'RL, calling CAMB_GetResults'
      call CAMB_GetResults(P)
 
 
@@ -725,7 +656,6 @@ program driver
         !          print*, 'computing isocurvature' 
         if (P%WantScalars) then
            allocate(RHCl_temp(size(Cl_scalar, 1), size(Cl_scalar, 2), size(Cl_scalar, 3))) !RL 111523
-           !!print *, 'shape(Cl_scalar)', shape(Cl_scalar) !RL 111523: shape doesn't seem to work. But let's leave isocurvature for later
            RHCl_temp(lmin:P%Max_l,1,C_Temp:C_last) = Cl_scalar(lmin:P%Max_l,1,C_Temp:C_last)
         end if
 
