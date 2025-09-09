@@ -34,7 +34,7 @@
 
     real, parameter :: Min_kh_nonlinear = 0.005
     real(dl):: om_m,om_v,fnu,omm0, acur
-
+    real(dl):: omv0_axion !RL 090925
     integer, parameter :: halofit_original = 1, halofit_bird=2, halofit_peacock=3, halofit_takahashi=4
     integer, parameter :: halofit_default = halofit_original ! DM15: Takahashi is not stable for axion models. Other versions agree well and are sensible to percent level for lensing \ell<4000.
     integer :: halofit_version = halofit_default
@@ -74,8 +74,10 @@
     !Make sure to set the same boundary mass, m/H0 = 10, in subroutine outtransf.
     if (CP%m_ovH0.ge.10._dl) then !RL 120224
        omm0 = CP%omegac+CP%omegab+CP%omegan+CP%omegaax
+       omv0_axion = 0._dl !RL 090925 DM cases, not adding DE
     else
        omm0 = CP%omegac+CP%omegab+CP%omegan
+       omv0_axion = CP%omegaax !RL 090925 DE cases
     end if
     fnu = CP%omegan/omm0
     
@@ -88,8 +90,8 @@
        ! curvature (rncur) of the power spectrum at the desired redshift, using method
        ! described in Smith et al (2002).
        a = 1/real(1+CAMB_Pk%Redshifts(itf),dl)
-       om_m = omega_m(a, omm0, CP%omegav, w_lam,wa_ppf)
-       om_v = omega_v(a, omm0, CP%omegav, w_lam,wa_ppf)
+       om_m = omega_m(a, omm0, CP%omegav + omv0_axion, w_lam,wa_ppf) !RL 090925 added DE-like axion
+       om_v = omega_v(a, omm0, CP%omegav + omv0_axion, w_lam,wa_ppf) !RL 090925 added DE-like axion
        acur = a
        xlogr1=-2.0
        xlogr2=3.5
@@ -111,7 +113,7 @@
           if (xlogr2 < -1.9999) then
              !is still linear, exit
              goto 101
-          else if (xlogr2>3.4999) then
+          else if (xlogr1>3.4999) then
              ! Totally crazy non-linear
              global_error_flag=349
                 write(*,*) 'Error in halofit'
